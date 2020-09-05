@@ -25,7 +25,9 @@ defmodule Pun do
       if String.length(phrase) > (len/2) do
         search_loop text, start+1, start+2, len, max_length_phrase
       else
-        if count(text, phrase) >= 2 && String.length(max_length_phrase) < String.length(phrase) do
+        if count(text, phrase) >= 2 &&
+             String.length(max_length_phrase) < String.length(phrase) &&
+             String.length(phrase) > 2 do
           step_loop text, start, end_, len, phrase
         else
           step_loop text, start, end_, len, max_length_phrase

@@ -29,8 +29,12 @@ defmodule PunTest do
     assert "すすすすす" |> search_pun == ""
   end
 
+  test "find pun よくできたないようです" do
+    assert "よくできた内容ですが、欲で汚いようです。" |> search_pun == "ヨクデキタナイヨウデス"
+  end
+
   test "find pun" do
-    assert "" |> Mecab.parse |> Parser.get_yomi |> Pun.search == ""
+    assert "" |> search_pun == ""
   end
 
 end
