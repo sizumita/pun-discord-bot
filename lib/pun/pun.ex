@@ -4,8 +4,7 @@ defmodule Pun do
     others - 1
   end
 
-  def search(yomi_list) do
-    text = Enum.join(yomi_list, "")
+  def search(text) do
     len = String.length text
     search_loop text, 0, 1, len, ""
   end
