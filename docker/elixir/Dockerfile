@@ -1,5 +1,7 @@
 FROM elixir:1.10.4
 
+ENV MIX_HOME=/opt/mix
+
 RUN apt-get update && apt-get upgrade -y \
   && apt-get install -y \
     mecab \
@@ -9,11 +11,11 @@ RUN apt-get update && apt-get upgrade -y \
 
 RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git \
     && cd mecab-ipadic-neologd \
-    && bin/install-mecab-ipadic-neologd -n -y --asuser
+    && bin/install-mecab-ipadic-neologd -n -y --asuser -p /usr/local/lib/mecab/dic/ipadic
 
 WORKDIR /bot
 ADD . /bot
 
-RUN mix deps.get
+RUN mix local.hex --force && mix deps.get
 
-CMD ["mix", "run"]
+CMD ["mix", "test"]
