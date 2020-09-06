@@ -2,7 +2,7 @@ defmodule PunTest do
   use ExUnit.Case
 
   defp search_pun(text) do
-    text |> Helper.parse |> Parser.get_yomi |> Pun.search
+    text |> Pun.search
   end
 
   test "find pun アルミ缶" do
