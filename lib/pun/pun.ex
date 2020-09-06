@@ -6,30 +6,32 @@ defmodule Pun do
 
   def search(text) do
     len = String.length text
-    search_loop text, 0, 1, len, ""
+    search_loop text, 0, 3, len, ""
   end
 
-  defp step_loop(text, start, end_, len, max_length_phrase) do
-    case end_ do
-      ^len -> search_loop text, start+1, start+2, len, max_length_phrase
-      _ -> search_loop text, start, end_+1, len, max_length_phrase
+  defp step_loop(text, start, width, len, max_length_phrase) do
+    if start + width >= len do
+      search_loop text, start+1, 3, len, max_length_phrase
+    else
+      search_loop text, start, width+1, len, max_length_phrase
     end
   end
 
-  defp search_loop(text, start, end_, len, max_length_phrase) do
+  defp search_loop(text, start, width, len, max_length_phrase) do
     if start == len do
       max_length_phrase
     else
-      phrase = String.slice text, start, end_
+      phrase = String.slice text, start, width
       if String.length(phrase) > (len/2) do
-        search_loop text, start+1, start+2, len, max_length_phrase
+        # 半分の長さより大きかったら
+        search_loop text, start+1, 3, len, max_length_phrase
       else
         if count(text, phrase) >= 2 &&
              String.length(max_length_phrase) < String.length(phrase) &&
              String.length(phrase) > 2 do
-          step_loop text, start, end_, len, phrase
+          step_loop text, start, width, len, phrase
         else
-          step_loop text, start, end_, len, max_length_phrase
+          step_loop text, start, width, len, max_length_phrase
         end
       end
     end
