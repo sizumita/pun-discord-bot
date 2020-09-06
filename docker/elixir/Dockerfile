@@ -14,8 +14,14 @@ RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git \
     && bin/install-mecab-ipadic-neologd -n -y --asuser -p /usr/local/lib/mecab/dic/ipadic
 
 WORKDIR /bot
-ADD . /bot
+ADD mix.exs /bot
+ADD config /bot/config
+ADD lib /bot/lib
+ADD test /bot/test
+ADD .env /bot
 
-RUN mix local.hex --force && mix deps.get
+RUN mix local.rebar --force && mix local.hex --force && mix deps.get
 
-CMD ["mix", "test"]
+RUN mix compile
+
+CMD ["mix", "run", "--no-halt"]
