@@ -1,0 +1,3 @@
+%{
+  "mecab": {:hex, :mecab, "1.0.3", "fc5a469b7224600fddd78bd34c2371b31362bdc975272ebc2ab1185bc06440f7", [:mix], [], "hexpm", "2270102ec3078b5b64d56b12c5ce4063eb68fb3e76776ca40dfa54578735dbf5"},
+}
