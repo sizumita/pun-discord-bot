@@ -2,7 +2,7 @@ defmodule PunTest do
   use ExUnit.Case
 
   defp search_pun(text) do
-    Mecab.parse(text, %{:mecab_option => "-d /usr/local/lib/mecab/dic/ipadic"}) |> Parser.get_yomi |> Pun.search
+    text |> Helper.parse |> Parser.get_yomi |> Pun.search
   end
 
   test "find pun アルミ缶" do
