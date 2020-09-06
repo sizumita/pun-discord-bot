@@ -37,6 +37,10 @@ defmodule PunTest do
     assert "布団がふっとんだ" |> search_pun == "フトン"
   end
 
+  test "find pun 季は季" do
+    assert "季は季" |> search_pun == ""
+  end
+
   test "find pun" do
     assert "" |> search_pun == ""
   end
