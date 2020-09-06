@@ -13,4 +13,12 @@ defmodule ParserTest do
     assert Parser.get_yomi(Mecab.parse("上方の髪型")) == "カミガタノカミガタ"
   end
 
+  test "conversion special chars from `あっ！やらかしたー`" do
+    assert "あっ！やらかしたっー" |> Mecab.parse |> Parser.get_yomi |> Parser.conversion_characters == "アヤラカシタ"
+  end
+
+  test "conversion special chars from `おっと、急に飛び出しちゃ危ないよ！`" do
+    assert "おっと、急に飛び出しちゃ危ないよ！" |> Mecab.parse |> Parser.get_yomi |> Parser.conversion_characters == "オトキユウニトビダシチヤアブナイヨ"
+  end
+
 end
