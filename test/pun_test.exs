@@ -22,7 +22,7 @@ defmodule PunTest do
   end
 
   test "find pun もくもくもく" do
-    assert "もくもくもく" |> search_pun == ""
+    assert "もくもく" |> search_pun == ""
   end
 
   test "find pun すすすすす" do
@@ -51,6 +51,10 @@ defmodule PunTest do
 
   test "find pun" do
     assert "" |> search_pun == ""
+  end
+
+  test "find pun あああああああああああ" do
+    assert "あああああああああああ" |> search_pun == ""
   end
 
 end
