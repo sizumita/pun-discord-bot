@@ -5,44 +5,92 @@ defmodule Pun do
   end
 
   def search(text) do
-    kana_text = text |> Helper.parse |> Parser.get_yomi
-    len = String.length kana_text
-    dups = Helper.duplication_words(text)
-    all_words = Helper.words(text)
-    search_loop kana_text, 0, 3, len, "", dups, all_words
+    words = text |> Helper.parse |> Parser.get_parsed_words
+    combinations = get_combinations words
+    search_pun text, combinations
   end
 
-  defp step_loop(text, start, width, len, max_length_phrase, dups, all_words) do
-    if start + width >= len do
-      search_loop text, start+1, 3, len, max_length_phrase, dups, all_words
-    else
-      search_loop text, start, width+1, len, max_length_phrase, dups, all_words
-    end
+  def is_same_yomi(lhs, rhs) do
+    Enum.join(Enum.map(lhs, fn(x) -> x.yomi end), "") == Enum.join(Enum.map(rhs, fn(x) -> x.yomi end), "")
   end
 
-  defp search_loop(text, start, width, len, max_length_phrase, dups, all_words) do
-    if start == len do
-      max_length_phrase
-    else
-      phrase = String.slice text, start, width
-      if String.length(phrase) > (len/2) do
-        # 半分の長さより大きかったら
-        search_loop text, start+1, 3, len, max_length_phrase, dups, all_words
+  def starts_with_yomi(base, target) do
+    base_yomi = base |> Enum.map(fn x -> x.yomi end) |> Enum.join("")
+    target_yomi = target |> Enum.map(fn x -> x.yomi end) |> Enum.join("")
+    non_last_target_yomi = target |> Enum.map(fn x -> x.yomi end) |> Enum.reverse |> tl |> Enum.reverse |> Enum.join("")
+    !String.starts_with?(non_last_target_yomi, base_yomi) && String.starts_with?(target_yomi, base_yomi)
+  end
+
+  defp remove_empty_and_unique(list) do
+    list |> Enum.filter(fn x -> x != [] end)
+      |> Enum.reduce([], fn(x, acc) ->
+      if !Enum.find(acc, fn y -> y == x end) do
+        [x | acc]
       else
-        same_dup_words = Enum.filter(dups, fn(x) -> x["yomi"] == phrase end)
-        same_words = Enum.filter(all_words, fn(x) -> x["yomi"] == phrase end)
-        if Enum.count(same_dup_words) == 1 && Enum.count(same_words) == 1 do
-          step_loop text, start, width, len, max_length_phrase, dups, all_words
+        acc
+      end
+    end)
+  end
+
+  def get_combinations(words) do
+    len = Enum.count words
+    Range.new(0, len-1) |>
+      Enum.map(fn at ->
+        Range.new(1, trunc(len/2)) |>
+          Enum.map(fn at2 ->
+            Enum.slice words, at, at2 end)
+      end)
+    |>
+      Enum.reduce([], fn(x, acc) ->
+        remove_empty_and_unique(x) ++ acc
+      end)
+  end
+
+  def is_same_meaning(lhs, rhs) do
+    lhs_surface = lhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
+    rhs_surface = rhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
+    lhs_surface == rhs_surface
+  end
+
+  def starts_same_meaning(lhs, rhs) do
+    lhs_surface = lhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
+    rhs_surface = rhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
+    String.starts_with?(lhs_surface, rhs_surface)
+  end
+
+  defp search_pun(text, combinations) do
+    combinations |> Enum.map(fn selected_words ->
+      is_pun = combinations |> Enum.any?(fn check_words ->
+        if is_same_yomi(selected_words, check_words) do
+          !is_same_meaning(selected_words, check_words)
         else
-          if count(text, phrase) >= 2 &&
-               String.length(max_length_phrase) < String.length(phrase) &&
-               String.length(phrase) > 2 do
-            step_loop text, start, width, len, phrase, dups, all_words
+          if starts_with_yomi(selected_words, check_words) do
+            if count(text, (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join(""))) == 1 do
+              !starts_same_meaning(selected_words, check_words)
+            else
+              false
+            end
           else
-            step_loop text, start, width, len, max_length_phrase, dups, all_words
+            false
           end
         end
+      end)
+      case is_pun do
+        true -> selected_words
+        _ -> nil
       end
-    end
+    end)
+    |> Enum.reduce("", fn (x, acc) ->
+        case x do
+          nil -> acc
+          _ ->
+            yomi = Enum.join(Enum.map(x, fn(y)-> y.yomi end), "")
+            if String.length(yomi) > String.length(acc) do
+              yomi
+            else
+              acc
+            end
+        end
+      end)
   end
 end
