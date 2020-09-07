@@ -79,14 +79,13 @@ defmodule Pun do
         true -> selected_words
         _ -> nil
       end
-    end)
-    |> Enum.reduce("", fn (x, acc) ->
+    end) |> Enum.reduce(%{:yomi => "", :surface => ""}, fn (x, acc) ->
         case x do
           nil -> acc
           _ ->
             yomi = Enum.join(Enum.map(x, fn(y)-> y.yomi end), "")
-            if String.length(yomi) > String.length(acc) do
-              yomi
+            if String.length(yomi) > String.length(acc.yomi) do
+              %{:yomi => yomi, :surface => Enum.join(Enum.map(x, fn(y)-> y.surface end), "")}
             else
               acc
             end

@@ -17,8 +17,8 @@ defmodule PunDiscordBot.Command do
 
   def handle(msg) do
     pun = Pun.search msg.content
-    if pun != "" do
-      create_message msg.channel_id, "だじゃれを検出しました！\n> **#{pun}**"
+    if pun.surface != "" do
+      create_message msg.channel_id, "だじゃれを検出しました！\n> **#{pun.surface}**"
     end
   end
 
