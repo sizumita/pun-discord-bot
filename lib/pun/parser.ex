@@ -1,6 +1,13 @@
 defmodule Parser do
-  def get_yomi(parsed_text) do
-    (Enum.join Enum.map(parsed_text, fn x -> x["yomi"] end), "") |> conversion_characters
+  def get_parsed_words(parsed_text) do
+    Enum.map(parsed_text, fn x ->
+      %{
+        :yomi => conversion_characters(x["yomi"] || x["surface_form"]),
+        :surface => x["surface_form"],
+        :part => x["part_of_speech"]
+      }
+    end) |>
+    Enum.filter(fn(x) -> x.surface != "EOS" && x.part != "記号" && x.yomi != "" end)
   end
 
   def conversion_characters(text) do
@@ -12,6 +19,12 @@ defmodule Parser do
       %{from: "ー", to: ""},
       %{from: "？", to: ""},
       %{from: "?", to: ""},
+      %{from: "「", to: ""},
+      %{from: "」", to: ""},
+      %{from: "(", to: ""},
+      %{from: ")", to: ""},
+      %{from: "（", to: ""},
+      %{from: "）", to: ""},
       %{from: "ッ", to: ""},
       %{from: "ァ", to: "ア"},
       %{from: "ィ", to: "イ"},

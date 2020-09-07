@@ -45,6 +45,10 @@ defmodule PunTest do
     assert "機関から帰還する機関" |> search_pun == "キカン"
   end
 
+  test "find pun コケコッコーコケコッコー" do
+    assert "コケコッコーコケコッコー" |> search_pun == ""
+  end
+
   test "find pun" do
     assert "" |> search_pun == ""
   end
