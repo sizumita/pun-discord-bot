@@ -46,32 +46,52 @@ defmodule Pun do
       end)
   end
 
-  def is_same_meaning(lhs, rhs) do
+  def is_same_meaning lhs, rhs do
     lhs_surface = lhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
     rhs_surface = rhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
     lhs_surface == rhs_surface
   end
 
-  def starts_same_meaning(lhs, rhs) do
+  def starts_same_meaning lhs, rhs do
     lhs_surface = lhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
     rhs_surface = rhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
     String.starts_with?(lhs_surface, rhs_surface)
   end
 
-  defp search_pun(text, combinations) do
+  def is_duplication lhs, rhs do
+    lhs_first_word = hd lhs
+    rhs_first_word = hd rhs
+    lhs_last_word = lhs |> Enum.reverse |> hd
+    rhs_last_word = rhs |> Enum.reverse |> hd
+    if lhs_first_word.at <= rhs_first_word.at && rhs_first_word.at <= lhs_last_word.at do
+      true
+    else
+      if lhs_first_word.at <= rhs_last_word.at && rhs_last_word.at <= lhs_last_word.at do
+        true
+      else
+        false
+      end
+    end
+  end
+
+  defp search_pun text, combinations do
     combinations |> Enum.map(fn selected_words ->
       is_pun = combinations |> Enum.any?(fn check_words ->
-        if is_same_yomi(selected_words, check_words) do
-          !is_same_meaning(selected_words, check_words)
+        if is_duplication selected_words, check_words do
+          false
         else
-          if starts_with_yomi(selected_words, check_words) do
-            if count(text, (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join(""))) == 1 do
-              !starts_same_meaning(selected_words, check_words)
+          if is_same_yomi(selected_words, check_words) do
+            !is_same_meaning(selected_words, check_words)
+          else
+            if starts_with_yomi(selected_words, check_words) do
+              if count(text, (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join(""))) == 1 do
+                !starts_same_meaning(selected_words, check_words)
+              else
+                false
+              end
             else
               false
             end
-          else
-            false
           end
         end
       end)
