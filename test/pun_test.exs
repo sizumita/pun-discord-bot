@@ -57,4 +57,12 @@ defmodule PunTest do
     assert "あああああああああああ" |> search_pun == ""
   end
 
+  test "find pun 圧巻、悪漢、あっかんみたいな" do
+    assert "圧巻、悪漢、あっかんみたいな" |> search_pun == "アカン"
+  end
+
+  test "find pun そうだ、一文字はなしだったんだ" do
+    assert "そうだ、一文字はなしだったんだ" |> search_pun == ""
+  end
+
 end
