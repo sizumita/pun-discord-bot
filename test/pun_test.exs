@@ -1,8 +1,8 @@
 defmodule PunTest do
   use ExUnit.Case
 
-  defp search_pun(text) do
-    (text |> Pun.search).yomi
+  defp search_pun(text, use_pronunciation \\ false) do
+    (text |> Pun.search(use_pronunciation)).yomi
   end
 
   test "find pun アルミ缶" do
@@ -75,6 +75,14 @@ defmodule PunTest do
 
   test "find pun 野口英世のグチ、ヒデーよ。" do
     assert "野口英世のグチ、ヒデーよ。" |> search_pun == "ノグチヒデヨ"
+  end
+
+  test "find pun 星野リゾートから、干し海苔贈答" do
+    assert "星野リゾートから、干し海苔贈答" |> search_pun(true) == "ホシノリゾト"
+  end
+
+  test "find pun ローソクが老化" do
+    assert "ローソクが老化" |> search_pun == ""
   end
 
 end

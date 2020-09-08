@@ -1,10 +1,21 @@
 defmodule Parser do
-  def get_parsed_words(parsed_text) do
+  def get_parsed_words(parsed_text, use_pronunciation \\ false) do
     Range.new(0, Enum.count(parsed_text)-1) |>
       Enum.map(fn at ->
         word = Enum.at parsed_text, at
         %{
-          :yomi => conversion_characters(if word["yomi"] == "", do: word["surface_form"], else: word["yomi"]),
+          :yomi => (if use_pronunciation,
+                      do: conversion_characters(
+                        if word["pronunciation"] == "",
+                          do: conversion_characters(
+                            if word["yomi"] == "",
+                              do: word["surface_form"],
+                              else: word["yomi"]),
+                          else: word["pronunciation"]),
+                      else: conversion_characters(
+                        if word["yomi"] == "",
+                          do: word["surface_form"],
+                          else: word["yomi"])),
           :surface => word["surface_form"],
           :part => word["part_of_speech"],
           :at => at

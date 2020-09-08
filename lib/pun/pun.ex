@@ -4,8 +4,8 @@ defmodule Pun do
     others - 1
   end
 
-  def search(text) do
-    words = text |> Helper.parse |> Parser.get_parsed_words
+  def search(text, use_pronunciation \\ false) do
+    words = text |> Helper.parse |> Parser.get_parsed_words(use_pronunciation)
     combinations = get_combinations words
     search_pun text, combinations
   end
