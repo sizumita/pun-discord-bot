@@ -23,9 +23,20 @@ defmodule PunDiscordBot.Command do
   end
 
   def handle(msg) do
-    pun = Pun.search msg.content
-    if !msg.author.bot && pun.surface != "" do
-      create_message msg.channel_id, "だじゃれを検出しました！\n> **#{pun.surface}**\n > **#{pun.checked_surface}**"
+    if !msg.author.bot do
+      lhs = Pun.search(msg.content)
+      rhs = Pun.search(msg.content, true)
+      case {lhs.surface, rhs.surface} do
+        {"", ""} -> :ignore
+        {lhs_surface, ""} -> create_message msg.channel_id, "だじゃれを検出しました！\n> **#{lhs_surface}**\n > **#{lhs.checked_surface}**"
+        {"", rhs_surface} -> create_message msg.channel_id, "だじゃれを検出しました！\n> **#{rhs_surface}**\n > **#{rhs.checked_surface}**"
+        {lhs_surface, rhs_surface} ->
+          if String.length(lhs_surface) > String.length(rhs_surface) do
+            create_message msg.channel_id, "だじゃれを検出しました！\n> **#{lhs_surface}**\n > **#{lhs.checked_surface}**"
+          else
+            create_message msg.channel_id, "だじゃれを検出しました！\n> **#{rhs_surface}**\n > **#{rhs.checked_surface}**"
+          end
+      end
     end
   end
 
