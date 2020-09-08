@@ -63,49 +63,61 @@ defmodule Pun do
     rhs_first_word = hd rhs
     lhs_last_word = lhs |> Enum.reverse |> hd
     rhs_last_word = rhs |> Enum.reverse |> hd
-    if lhs_first_word.at <= rhs_first_word.at && rhs_first_word.at <= lhs_last_word.at do
-      true
-    else
-      if lhs_first_word.at <= rhs_last_word.at && rhs_last_word.at <= lhs_last_word.at do
-        true
-      else
-        false
-      end
+    case {lhs_first_word.at <= rhs_first_word.at, rhs_first_word.at <= lhs_last_word.at} do
+      {true, true} -> true
+      _ ->
+        case {lhs_first_word.at <= rhs_last_word.at, rhs_last_word.at <= lhs_last_word.at} do
+          {true, true} -> true
+          _ -> false
+        end
     end
+  end
+
+  defp get_longest_word list do
+    list |> Enum.reduce(nil, fn (x, acc) ->
+      if acc do
+        case {(x |> Enum.map(fn y -> y.yomi end) |> Enum.join("") |> String.length),
+          (acc |> Enum.map(fn y -> y.yomi end) |> Enum.join("") |> String.length) } do
+          {a, b} when a > b -> x
+          _ -> acc
+        end
+      else
+        x
+      end
+    end)
   end
 
   defp search_pun text, combinations do
     combinations |> Enum.map(fn selected_words ->
-      is_pun = combinations |> Enum.any?(fn check_words ->
+      puns = combinations |> Enum.map(fn check_words ->
         if is_duplication selected_words, check_words do
           false
         else
-          if is_same_yomi(selected_words, check_words) do
-            !is_same_meaning(selected_words, check_words)
-          else
-            if starts_with_yomi(selected_words, check_words) do
-              if count(text, (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join(""))) == 1 do
-                !starts_same_meaning(selected_words, check_words)
-              else
-                false
-              end
-            else
-              false
-            end
+          case {is_same_yomi(selected_words, check_words),
+            starts_with_yomi(selected_words, check_words),
+            count(text, (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join("")))} do
+            {true, _, _} -> if !is_same_meaning(selected_words, check_words), do: check_words, else: false
+            {_, true, 1} -> if !starts_same_meaning(selected_words, check_words), do: check_words, else: false
+            _ -> false
           end
         end
-      end)
-      case is_pun do
-        true -> selected_words
+      end) |>
+        Enum.filter(fn x -> x != false end)
+      case Enum.empty?(puns) do
+        false -> %{:base => selected_words, :checked => puns |> get_longest_word}
         _ -> nil
       end
-    end) |> Enum.reduce(%{:yomi => "", :surface => ""}, fn (x, acc) ->
+    end) |> Enum.reduce(%{:yomi => "", :surface => "", :checked_yomi => ""}, fn (x, acc) ->
         case x do
           nil -> acc
           _ ->
-            yomi = Enum.join(Enum.map(x, fn(y)-> y.yomi end), "")
-            if String.length(yomi) > String.length(acc.yomi) do
-              %{:yomi => yomi, :surface => Enum.join(Enum.map(x, fn(y)-> y.surface end), "")}
+            yomi = x.base |> Enum.map(fn y -> y.yomi end) |> Enum.join("")
+            if String.length(yomi) > String.length(acc.yomi) && String.length(yomi) != 1 do
+              %{:yomi => yomi,
+                :surface => x.base |> Enum.map(fn y -> y.surface end) |> Enum.join(""),
+                :checked_yomi => x.checked |> Enum.map(fn y -> y.yomi end) |> Enum.join(""),
+                :checked_surface => x.checked |> Enum.map(fn y -> y.surface end) |> Enum.join("")
+              }
             else
               acc
             end
