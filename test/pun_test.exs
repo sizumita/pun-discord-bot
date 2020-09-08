@@ -89,4 +89,24 @@ defmodule PunTest do
     assert "遺跡で良い席ゲット" |> search_pun == "イセキ"
   end
 
+  test "find pun 無理なアルゴリズムだからなぁ" do
+    assert "無理なアルゴリズムだからなぁ" |> search_pun == ""
+  end
+
+  test "find pun 「イワシ・タイ・ナマズ」って言わしたいな、まず。" do
+    assert "「イワシ・タイ・ナマズ」って言わしたいな、まず。" |> search_pun == "イワシタイナマズ"
+  end
+
+  test "find pun 時価2億を直に置く。" do
+    assert "時価2億を直に置く。" |> search_pun == "ジカニオク"
+  end
+
+  test "find pun 新弟子埋葬したら死んでしまいそう" do
+    assert "新弟子埋葬したら死んでしまいそう" |> search_pun == "シンデシマイソウ"
+  end
+
+  test "find pun ですます口調で済ます区長。" do
+    assert "ですます口調で済ます区長。" |> search_pun == "デスマスクチヨウ"
+  end
+
 end

@@ -129,6 +129,22 @@ defmodule Pun do
     end
   end
 
+  defp get_words_yomi_length(words) do
+    words |> Enum.map(fn x -> x.yomi end) |> Enum.join("") |> String.length
+  end
+
+  defp is_all_noun words do
+    words |> Enum.all?(fn word -> word.part == "名詞" end)
+  end
+
+  defp filter_puns puns do
+    puns |> Enum.filter(fn x -> x != false end) |>
+      Enum.filter(fn pun ->
+        len = get_words_yomi_length(pun)
+        if len <= 3, do: is_all_noun(pun), else: true
+      end)
+  end
+
   defp search_pun text, combinations do
     combinations |> Enum.map(fn selected_words ->
       puns = combinations |> Enum.map(fn check_words ->
@@ -141,9 +157,10 @@ defmodule Pun do
             false -> search_middle_pun selected_words, check_words, same_word_count
           end
         end
-      end) |> Enum.filter(fn x -> x != false end)
+      end) |> filter_puns
+      len = get_words_yomi_length(selected_words)
       case Enum.empty?(puns) do
-        false -> %{:base => selected_words, :checked => puns |> get_longest_word}
+        false -> if (len <= 2) && !is_all_noun(selected_words), do: nil, else: %{:base => selected_words, :checked => puns |> get_longest_word}
         _ -> nil
       end
     end) |> get_longest_pun
