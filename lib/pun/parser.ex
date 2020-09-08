@@ -1,13 +1,16 @@
 defmodule Parser do
   def get_parsed_words(parsed_text) do
-    Enum.map(parsed_text, fn x ->
-      %{
-        :yomi => conversion_characters(x["yomi"] || x["surface_form"]),
-        :surface => x["surface_form"],
-        :part => x["part_of_speech"]
-      }
-    end) |>
-    Enum.filter(fn(x) -> x.surface != "EOS" && x.part != "記号" && x.yomi != "" end)
+    Range.new(0, Enum.count(parsed_text)-1) |>
+      Enum.map(fn at ->
+        word = Enum.at parsed_text, at
+        %{
+          :yomi => conversion_characters(word["yomi"] || word["surface_form"]),
+          :surface => word["surface_form"],
+          :part => word["part_of_speech"],
+          :at => at
+        }
+      end) |>
+      Enum.filter(fn(x) -> x.surface != "EOS" && x.part != "記号" && x.yomi != "" end)
   end
 
   def conversion_characters(text) do
