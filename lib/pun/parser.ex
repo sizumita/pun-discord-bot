@@ -4,7 +4,7 @@ defmodule Parser do
       Enum.map(fn at ->
         word = Enum.at parsed_text, at
         %{
-          :yomi => conversion_characters(word["yomi"] || word["surface_form"]),
+          :yomi => conversion_characters(if word["yomi"] == "", do: word["surface_form"], else: word["yomi"]),
           :surface => word["surface_form"],
           :part => word["part_of_speech"],
           :at => at

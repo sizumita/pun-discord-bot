@@ -36,7 +36,7 @@ defmodule Pun do
     len = Enum.count words
     Range.new(0, len-1) |>
       Enum.map(fn at ->
-        Range.new(1, round(len/2)) |>
+        Range.new(1, len-at) |>
           Enum.map(fn at2 ->
             Enum.slice words, at, at2 end)
       end)
@@ -93,6 +93,15 @@ defmodule Pun do
         if is_duplication selected_words, check_words do
           false
         else
+#          IO.puts "---"
+#          IO.inspect (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join(""))
+#          IO.inspect (check_words |> Enum.map(fn x -> x.surface end) |> Enum.join(""))
+#          IO.inspect (selected_words |> Enum.map(fn x -> x.yomi end) |> Enum.join(""))
+#          IO.inspect (check_words |> Enum.map(fn x -> x.yomi end) |> Enum.join(""))
+#          IO.inspect (is_same_yomi(selected_words, check_words))
+#          IO.inspect (!is_same_meaning(selected_words, check_words))
+#          IO.inspect (starts_with_yomi(selected_words, check_words))
+#          IO.inspect (!starts_same_meaning(selected_words, check_words))
           case {is_same_yomi(selected_words, check_words),
             starts_with_yomi(selected_words, check_words),
             count(text, (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join("")))} do
