@@ -89,4 +89,8 @@ defmodule PunTest do
     assert "遺跡で良い席ゲット" |> search_pun == "イセキ"
   end
 
+  test "find pun 無理なアルゴリズムだからなぁ" do
+    assert "無理なアルゴリズムだからなぁ" |> search_pun == ""
+  end
+
 end
