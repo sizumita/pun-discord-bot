@@ -14,11 +14,24 @@ defmodule Pun do
     Enum.join(Enum.map(lhs, fn(x) -> x.yomi end), "") == Enum.join(Enum.map(rhs, fn(x) -> x.yomi end), "")
   end
 
+  @doc """
+  最初から最後の単語の途中まで同じだったら
+  """
   def starts_with_yomi(base, target) do
     base_yomi = base |> Enum.map(fn x -> x.yomi end) |> Enum.join("")
     target_yomi = target |> Enum.map(fn x -> x.yomi end) |> Enum.join("")
     non_last_target_yomi = target |> Enum.map(fn x -> x.yomi end) |> Enum.reverse |> tl |> Enum.reverse |> Enum.join("")
     !String.starts_with?(non_last_target_yomi, base_yomi) && String.starts_with?(target_yomi, base_yomi)
+  end
+
+  @doc """
+  最初の単語の途中から最後の単語までが同じだったら
+  """
+  def ends_with_yomi(base, target) do
+    base_yomi = base |> Enum.map(fn x -> x.yomi end) |> Enum.join("")
+    target_yomi = target |> Enum.map(fn x -> x.yomi end) |> Enum.join("")
+    non_first_target_yomi = target |> tl |> Enum.map(fn x -> x.yomi end) |> Enum.join("")
+    !String.ends_with?(non_first_target_yomi, base_yomi) && String.ends_with?(target_yomi, base_yomi)
   end
 
   defp remove_empty_and_unique(list) do
@@ -58,6 +71,12 @@ defmodule Pun do
     String.starts_with?(lhs_surface, rhs_surface)
   end
 
+  def ends_same_meaning lhs, rhs do
+    lhs_surface = lhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
+    rhs_surface = rhs |> Enum.map(fn x -> x.surface end) |> Enum.join("")
+    String.ends_with?(lhs_surface, rhs_surface)
+  end
+
   def is_duplication lhs, rhs do
     lhs_first_word = hd lhs
     rhs_first_word = hd rhs
@@ -74,17 +93,40 @@ defmodule Pun do
   end
 
   defp get_longest_word list do
-    list |> Enum.reduce(nil, fn (x, acc) ->
-      if acc do
-        case {(x |> Enum.map(fn y -> y.yomi end) |> Enum.join("") |> String.length),
-          (acc |> Enum.map(fn y -> y.yomi end) |> Enum.join("") |> String.length) } do
-          {a, b} when a > b -> x
-          _ -> acc
-        end
-      else
-        x
+    list |> Enum.reduce([], fn (x, acc) ->
+      case {(x |> Enum.map(fn y -> y.yomi end) |> Enum.join("") |> String.length),
+        (acc |> Enum.map(fn y -> y.yomi end) |> Enum.join("") |> String.length) } do
+        {a, b} when a > b -> x
+        _ -> acc
       end
     end)
+  end
+
+  defp get_longest_pun pun_list do
+    pun_list |> Enum.reduce(%{:yomi => "", :surface => "", :checked_yomi => ""}, fn (x, acc) ->
+      case x do
+        nil -> acc
+        _ ->
+          yomi = x.base |> Enum.map(fn y -> y.yomi end) |> Enum.join("")
+          case (String.length(yomi) > String.length(acc.yomi) && String.length(yomi) != 1) do
+            true ->
+              %{:yomi => yomi,
+                :surface => x.base |> Enum.map(fn y -> y.surface end) |> Enum.join(""),
+                :checked_yomi => x.checked |> Enum.map(fn y -> y.yomi end) |> Enum.join(""),
+                :checked_surface => x.checked |> Enum.map(fn y -> y.surface end) |> Enum.join("")
+              }
+            false -> acc
+          end
+      end
+    end)
+  end
+
+  defp search_middle_pun selected_words, check_words, same_word_count do
+    case {starts_with_yomi(selected_words, check_words), ends_with_yomi(selected_words, check_words)} do
+      {true, false} when same_word_count == 1 -> if !starts_same_meaning(selected_words, check_words), do: check_words, else: false
+      {false, true} when same_word_count == 1 -> if !ends_same_meaning(selected_words, check_words), do: check_words, else: false
+      _ -> false
+    end
   end
 
   defp search_pun text, combinations do
@@ -93,44 +135,17 @@ defmodule Pun do
         if is_duplication selected_words, check_words do
           false
         else
-#          IO.puts "---"
-#          IO.inspect (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join(""))
-#          IO.inspect (check_words |> Enum.map(fn x -> x.surface end) |> Enum.join(""))
-#          IO.inspect (selected_words |> Enum.map(fn x -> x.yomi end) |> Enum.join(""))
-#          IO.inspect (check_words |> Enum.map(fn x -> x.yomi end) |> Enum.join(""))
-#          IO.inspect (is_same_yomi(selected_words, check_words))
-#          IO.inspect (!is_same_meaning(selected_words, check_words))
-#          IO.inspect (starts_with_yomi(selected_words, check_words))
-#          IO.inspect (!starts_same_meaning(selected_words, check_words))
-          case {is_same_yomi(selected_words, check_words),
-            starts_with_yomi(selected_words, check_words),
-            count(text, (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join("")))} do
-            {true, _, _} -> if !is_same_meaning(selected_words, check_words), do: check_words, else: false
-            {_, true, 1} -> if !starts_same_meaning(selected_words, check_words), do: check_words, else: false
-            _ -> false
+          same_word_count = count(text, (selected_words |> Enum.map(fn x -> x.surface end) |> Enum.join("")))
+          case is_same_yomi(selected_words, check_words) do
+            true -> if !is_same_meaning(selected_words, check_words), do: check_words, else: false
+            false -> search_middle_pun selected_words, check_words, same_word_count
           end
         end
-      end) |>
-        Enum.filter(fn x -> x != false end)
+      end) |> Enum.filter(fn x -> x != false end)
       case Enum.empty?(puns) do
         false -> %{:base => selected_words, :checked => puns |> get_longest_word}
         _ -> nil
       end
-    end) |> Enum.reduce(%{:yomi => "", :surface => "", :checked_yomi => ""}, fn (x, acc) ->
-        case x do
-          nil -> acc
-          _ ->
-            yomi = x.base |> Enum.map(fn y -> y.yomi end) |> Enum.join("")
-            if String.length(yomi) > String.length(acc.yomi) && String.length(yomi) != 1 do
-              %{:yomi => yomi,
-                :surface => x.base |> Enum.map(fn y -> y.surface end) |> Enum.join(""),
-                :checked_yomi => x.checked |> Enum.map(fn y -> y.yomi end) |> Enum.join(""),
-                :checked_surface => x.checked |> Enum.map(fn y -> y.surface end) |> Enum.join("")
-              }
-            else
-              acc
-            end
-        end
-      end)
+    end) |> get_longest_pun
   end
 end
