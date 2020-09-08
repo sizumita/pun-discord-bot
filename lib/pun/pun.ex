@@ -36,7 +36,7 @@ defmodule Pun do
     len = Enum.count words
     Range.new(0, len-1) |>
       Enum.map(fn at ->
-        Range.new(1, trunc(len/2)) |>
+        Range.new(1, round(len/2)) |>
           Enum.map(fn at2 ->
             Enum.slice words, at, at2 end)
       end)

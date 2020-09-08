@@ -65,4 +65,8 @@ defmodule PunTest do
     assert "そうだ、一文字はなしだったんだ" |> search_pun == ""
   end
 
+  test "find pun なりたいもの？ 成田鋳物！" do
+    assert "なりたいもの？ 成田鋳物！" |> search_pun == "ナリタイモノ"
+  end
+
 end
