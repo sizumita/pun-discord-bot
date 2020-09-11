@@ -1,5 +1,4 @@
 defmodule PunDiscordBot.Command do
-  alias PunDiscordBot.Command
   @prefix "djr!"
   @mention "<@752040386104655922> "
   @mention_nick "<@!#{Application.get_env(:nostrum, :bot_id)}> "
@@ -42,7 +41,7 @@ defmodule PunDiscordBot.Command do
     create_message msg.channel_id, "https://discord.com/api/oauth2/authorize?client_id=752040386104655922&permissions=0&scope=bot"
   end
 
-  defp execute(_, msg) do
+  defp execute(_, _) do
   end
 
   defp create_message(channel_id, message) do
