@@ -10,6 +10,19 @@ defmodule Pun do
     search_pun text, combinations
   end
 
+  def search_from_sentences sentences do
+    sentences |> Enum.map(fn x ->
+      result = search x
+      result_with_pronunciation = search x, true
+      case {result.surface, result_with_pronunciation.surface} do
+        {"", ""} -> nil
+        {lhs, ""} -> result
+        {"", rhs} -> result_with_pronunciation
+        {lhs, rhs} -> if String.length(lhs) >= String.length(rhs), do: result, else: result_with_pronunciation
+      end
+    end) |> Enum.filter(fn x -> x != nil end)
+  end
+
   def is_same_yomi(lhs, rhs) do
     Enum.join(Enum.map(lhs, fn(x) -> x.yomi end), "") == Enum.join(Enum.map(rhs, fn(x) -> x.yomi end), "")
   end

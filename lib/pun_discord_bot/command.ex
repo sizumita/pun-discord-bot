@@ -24,18 +24,12 @@ defmodule PunDiscordBot.Command do
 
   def handle(msg) do
     if !msg.author.bot do
-      lhs = Pun.search(msg.content)
-      rhs = Pun.search(msg.content, true)
-      case {lhs.surface, rhs.surface} do
-        {"", ""} -> :ignore
-        {lhs_surface, ""} -> create_message msg.channel_id, "だじゃれを検出しました！\n> **#{lhs_surface}**\n > **#{lhs.checked_surface}**"
-        {"", rhs_surface} -> create_message msg.channel_id, "だじゃれを検出しました！\n> **#{rhs_surface}**\n > **#{rhs.checked_surface}**"
-        {lhs_surface, rhs_surface} ->
-          if String.length(lhs_surface) > String.length(rhs_surface) do
-            create_message msg.channel_id, "だじゃれを検出しました！\n> **#{lhs_surface}**\n > **#{lhs.checked_surface}**"
-          else
-            create_message msg.channel_id, "だじゃれを検出しました！\n> **#{rhs_surface}**\n > **#{rhs.checked_surface}**"
-          end
+      results = Pun.search_from_sentences(msg.content |> String.split(["。", ".", "！", "!", "？", "?"], trim: true))
+      if !Enum.empty? results do
+        pun_text = results |> Enum.map(fn pun ->
+          "> **#{pun.surface}**\n> **#{pun.checked_surface}**\n"
+        end) |> Enum.join("\n")
+        create_message msg.channel_id, "だじゃれを検出しました！\n#{pun_text}"
       end
     end
   end
