@@ -10,6 +10,19 @@ defmodule Pun do
     search_pun text, combinations
   end
 
+  def search_from_sentences sentences do
+    sentences |> Enum.map(fn x ->
+      result = search x
+      result_with_pronunciation = search x, true
+      case {result.surface, result_with_pronunciation.surface} do
+        {"", ""} -> nil
+        {lhs, ""} -> result
+        {"", rhs} -> result_with_pronunciation
+        {lhs, rhs} -> if String.length(lhs) >= String.length(rhs), do: result, else: result_with_pronunciation
+      end
+    end) |> Enum.filter(fn x -> x != nil end)
+  end
+
   def is_same_yomi(lhs, rhs) do
     Enum.join(Enum.map(lhs, fn(x) -> x.yomi end), "") == Enum.join(Enum.map(rhs, fn(x) -> x.yomi end), "")
   end
@@ -78,14 +91,12 @@ defmodule Pun do
   end
 
   def is_duplication lhs, rhs do
-    lhs_first_word = hd lhs
-    rhs_first_word = hd rhs
     lhs_last_word = lhs |> Enum.reverse |> hd
     rhs_last_word = rhs |> Enum.reverse |> hd
-    case {lhs_first_word.at <= rhs_first_word.at, rhs_first_word.at <= lhs_last_word.at} do
+    case {(hd lhs).at <= (hd rhs).at, (hd rhs).at <= lhs_last_word.at} do
       {true, true} -> true
       _ ->
-        case {lhs_first_word.at <= rhs_last_word.at, rhs_last_word.at <= lhs_last_word.at} do
+        case {(hd lhs).at <= rhs_last_word.at, rhs_last_word.at <= lhs_last_word.at} do
           {true, true} -> true
           _ -> false
         end

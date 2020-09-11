@@ -1,27 +1,41 @@
 defmodule Parser do
-  def get_parsed_words(parsed_text, use_pronunciation \\ false) do
+  def get_parsed_words parsed_text, true do
     Range.new(0, Enum.count(parsed_text)-1) |>
       Enum.map(fn at ->
         word = Enum.at parsed_text, at
         %{
-          :yomi => (if use_pronunciation,
-                      do: conversion_characters(
-                        if word["pronunciation"] == "",
-                          do: conversion_characters(
-                            if word["yomi"] == "",
-                              do: word["surface_form"],
-                              else: word["yomi"]),
-                          else: word["pronunciation"]),
-                      else: conversion_characters(
+          :yomi => conversion_characters(
+                    if word["pronunciation"] == "",
+                     do: conversion_characters(
                         if word["yomi"] == "",
                           do: word["surface_form"],
-                          else: word["yomi"])),
+                          else: word["yomi"]),
+                     else: word["pronunciation"]),
           :surface => word["surface_form"],
           :part => word["part_of_speech"],
           :at => at
         }
-      end) |>
-      Enum.filter(fn(x) -> x.surface != "EOS" && x.part != "記号" && x.yomi != "" end)
+      end) |> filter_words
+  end
+
+  def get_parsed_words parsed_text, false do
+    Range.new(0, Enum.count(parsed_text)-1) |>
+      Enum.map(fn at ->
+        word = Enum.at parsed_text, at
+        %{
+          :yomi => conversion_characters(
+                   if word["yomi"] == "",
+                     do: word["surface_form"],
+                     else: word["yomi"]),
+          :surface => word["surface_form"],
+          :part => word["part_of_speech"],
+          :at => at
+        }
+      end) |> filter_words
+  end
+
+  def filter_words words do
+    words |> Enum.filter(fn(x) -> x.surface != "EOS" && x.part != "記号" && x.yomi != "" end)
   end
 
   def conversion_characters(text) do
