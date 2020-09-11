@@ -78,14 +78,12 @@ defmodule Pun do
   end
 
   def is_duplication lhs, rhs do
-    lhs_first_word = hd lhs
-    rhs_first_word = hd rhs
     lhs_last_word = lhs |> Enum.reverse |> hd
     rhs_last_word = rhs |> Enum.reverse |> hd
-    case {lhs_first_word.at <= rhs_first_word.at, rhs_first_word.at <= lhs_last_word.at} do
+    case {(hd lhs).at <= (hd rhs).at, (hd rhs).at <= lhs_last_word.at} do
       {true, true} -> true
       _ ->
-        case {lhs_first_word.at <= rhs_last_word.at, rhs_last_word.at <= lhs_last_word.at} do
+        case {(hd lhs).at <= rhs_last_word.at, rhs_last_word.at <= lhs_last_word.at} do
           {true, true} -> true
           _ -> false
         end
