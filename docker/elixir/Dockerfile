@@ -1,4 +1,4 @@
-FROM elixir:1.10.4
+FROM elixir:1.11.2
 
 ENV MIX_HOME=/opt/mix
 
@@ -19,6 +19,8 @@ ADD .env /bot
 ADD config /bot/config
 
 RUN mix local.rebar --force && mix local.hex --force && mix deps.get
+
+RUN mix deps.compile
 
 ADD lib /bot/lib
 ADD test /bot/test

@@ -1,6 +1,11 @@
 defmodule Helper do
   def parse(text) do
-    Mecab.parse(text, %{:mecab_option => "-d /usr/local/lib/mecab/dic/ipadic"})
+    Mecab.parse(form_text(text), %{:mecab_option => "-d /usr/local/lib/mecab/dic/ipadic"})
+  end
+
+  def form_text(text) do
+    text
+    |> (&Regex.replace(~r/https?:\/\/[\w!\?\/\+\-_~=;\.,\*&@#\$%\(\)'\[\]]+/, &1, "")).()
   end
 
   def duplication_words(text) do
